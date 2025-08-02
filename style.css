@@ -1,5 +1,11 @@
-body {
+html, body {
     margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100vh;
+}
+
+body {
     padding: 20px;
     font-family: 'Arial', sans-serif;
     background: linear-gradient(135deg, #1e3c72, #2a5298);
@@ -8,6 +14,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    box-sizing: border-box;
 }
 
 .game-container {

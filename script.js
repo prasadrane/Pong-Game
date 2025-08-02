@@ -8,7 +8,7 @@ const gameStatus = document.getElementById('gameStatus');
 // Game settings
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 80;
-const BALL_SIZE = 10;
+const BALL_SIZE = 15;
 const PADDLE_SPEED = 5;
 const BALL_SPEED = 4;
 
@@ -54,8 +54,12 @@ const keys = {};
 document.addEventListener('keydown', (e) => {
     keys[e.key.toLowerCase()] = true;
     
-    if (e.key === ' ') {
+    // Prevent default behavior for arrow keys and space
+    if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         e.preventDefault();
+    }
+    
+    if (e.key === ' ') {
         if (!gameRunning && !gameOver) {
             startGame();
         } else if (gameRunning) {
