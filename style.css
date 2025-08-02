@@ -1,0 +1,110 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100vh;
+}
+
+body {
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.game-container {
+    text-align: center;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+    margin: 0 0 20px 0;
+    font-size: 2.5em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    color: #fff;
+}
+
+.score-board {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    font-size: 1.2em;
+}
+
+.player-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.player-score span:first-child {
+    font-weight: bold;
+    color: #FFD700;
+}
+
+.player-score span:last-child {
+    font-size: 2em;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+#gameCanvas {
+    border: 3px solid #FFD700;
+    background: #000;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
+    margin: 20px 0;
+}
+
+.controls {
+    margin-top: 20px;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.controls p {
+    margin: 5px 0;
+}
+
+.controls strong {
+    color: #FFD700;
+}
+
+.game-status {
+    margin-top: 15px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #FFD700;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 900px) {
+    #gameCanvas {
+        width: 90vw;
+        height: 45vw;
+        max-width: 800px;
+        max-height: 400px;
+    }
+    
+    body {
+        padding: 10px;
+    }
+    
+    h1 {
+        font-size: 2em;
+    }
+    
+    .score-board {
+        font-size: 1em;
+    }
+}
