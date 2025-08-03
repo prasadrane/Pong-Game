@@ -99,38 +99,47 @@ document.addEventListener('touchmove', handleTouchMove, { passive: false });
 document.addEventListener('touchend', handleTouchEnd, { passive: false });
 
 function handleDocumentTouchStart(e) {
-    // Only handle touches when game is running and not already handled by canvas
+    // Only handle touches when game is running and not on the canvas
     if (!gameRunning) return;
     
     const touch = e.touches[0];
     const rect = canvas.getBoundingClientRect();
     
-    // Check if touch is near the canvas area (expanded zones)
+    // Check if touch is already on canvas
     const touchX = touch.clientX;
     const touchY = touch.clientY;
     
+    if (touchX >= rect.left && touchX <= rect.right && 
+        touchY >= rect.top && touchY <= rect.bottom) {
+        return; // Let canvas handler manage this
+    }
+    
+    // Check if touch is in expanded zones around canvas
     const expandedLeft = rect.left - TOUCH_SENSITIVITY.EXPAND_ZONE;
     const expandedRight = rect.right + TOUCH_SENSITIVITY.EXPAND_ZONE;
     const expandedTop = rect.top - TOUCH_SENSITIVITY.EXPAND_ZONE;
     const expandedBottom = rect.bottom + TOUCH_SENSITIVITY.EXPAND_ZONE;
     
-    // Only handle touches in expanded game area
     if (touchX >= expandedLeft && touchX <= expandedRight && 
         touchY >= expandedTop && touchY <= expandedBottom) {
         
-        // Convert to canvas coordinates
+        e.preventDefault(); // Prevent scrolling/zooming
+        
+        // Map to nearest canvas edge
         const canvasX = Math.max(0, Math.min(canvas.width, 
             (touchX - rect.left) * (canvas.width / rect.width)));
         const canvasY = Math.max(0, Math.min(canvas.height, 
             (touchY - rect.top) * (canvas.height / rect.height)));
         
-        // Create synthetic event for handleTouchStart
+        // Create synthetic touch event
+        const syntheticTouch = {
+            clientX: rect.left + (canvasX * rect.width / canvas.width),
+            clientY: rect.top + (canvasY * rect.height / canvas.height)
+        };
+        
         const syntheticEvent = {
-            preventDefault: () => e.preventDefault(),
-            touches: [{
-                clientX: rect.left + (canvasX * rect.width / canvas.width),
-                clientY: rect.top + (canvasY * rect.height / canvas.height)
-            }]
+            preventDefault: () => {},
+            touches: [syntheticTouch]
         };
         
         handleTouchStart(syntheticEvent);
@@ -149,17 +158,20 @@ function handleTouchStart(e) {
     const rightZoneStart = (canvas.width / 2) - TOUCH_SENSITIVITY.OVERLAP_ZONE;
     
     // Determine which paddle area was touched with expanded zones
-    if (touchX < leftZoneEnd) {
-        // Left side or center-left - Player 1 paddle
+    if (touchX <= leftZoneEnd && touchX < canvas.width / 2) {
+        // Pure left side - Player 1 paddle
         touchPaddle = 'player1';
-    } else if (touchX > rightZoneStart) {
-        // Right side or center-right - Player 2 paddle  
+    } else if (touchX >= rightZoneStart && touchX > canvas.width / 2) {
+        // Pure right side - Player 2 paddle  
         touchPaddle = 'player2';
-    } else {
-        // Fallback: choose closest paddle based on current position
+    } else if (touchX >= rightZoneStart && touchX <= leftZoneEnd) {
+        // Overlap zone - choose closest paddle based on current position
         const distToLeftPaddle = Math.abs(touchY - (paddle1.y + PADDLE_HEIGHT / 2));
         const distToRightPaddle = Math.abs(touchY - (paddle2.y + PADDLE_HEIGHT / 2));
         touchPaddle = distToLeftPaddle < distToRightPaddle ? 'player1' : 'player2';
+    } else {
+        // Default fallback based on canvas center
+        touchPaddle = touchX < canvas.width / 2 ? 'player1' : 'player2';
     }
     
     touchStartY = touchY;
@@ -327,8 +339,8 @@ function draw() {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw touch zone indicators (subtle visual feedback)
-    if (touchPaddle || !gameRunning) {
+    // Draw touch zone indicators only when game is paused (subtle visual feedback)
+    if (!gameRunning) {
         drawTouchZoneIndicators();
     }
     
