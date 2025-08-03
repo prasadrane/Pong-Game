@@ -93,7 +93,19 @@ function handleTouchStart(e) {
     const touchX = (touch.clientX - rect.left) * (canvas.width / rect.width);
     const touchY = (touch.clientY - rect.top) * (canvas.height / rect.height);
     
-    // Determine which paddle area was touched
+    // Handle game start/pause/resume - same logic as spacebar
+    if (!gameRunning && !gameOver) {
+        startGame();
+        return; // Don't set paddle controls when starting game
+    } else if (gameRunning) {
+        pauseGame();
+        return; // Don't set paddle controls when pausing game
+    } else if (gameOver) {
+        resetGame();
+        return; // Don't set paddle controls when resetting game
+    }
+    
+    // Determine which paddle area was touched (only during gameplay)
     if (touchX < canvas.width / 2) {
         // Left side - Player 1 paddle
         touchPaddle = 'player1';
@@ -143,7 +155,7 @@ function startGame() {
 
 function pauseGame() {
     gameRunning = false;
-    gameStatus.textContent = 'Game paused. Press SPACE to continue.';
+    gameStatus.textContent = 'Game paused. Press SPACE or tap to continue.';
 }
 
 function resetGame() {
@@ -158,7 +170,7 @@ function resetGame() {
     paddle2.y = canvas.height / 2 - PADDLE_HEIGHT / 2;
     resetBall();
     
-    gameStatus.textContent = 'Press SPACE to start the game!';
+    gameStatus.textContent = 'Press SPACE or tap to start the game!';
     draw();
 }
 
