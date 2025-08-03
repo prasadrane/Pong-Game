@@ -22,14 +22,23 @@
         <canvas id="gameCanvas" width="800" height="400"></canvas>
         <div class="controls">
             <p><strong>Controls:</strong></p>
-            <p>Player 1: W (Up) / S (Down)</p>
-            <p>Player 2: Arrow Up / Arrow Down</p>
+            <p>Player 1: W (Up) / S (Down) or touch left side</p>
+            <p>Player 2: Arrow Up / Arrow Down or touch right side</p>
             <p>Press SPACE to start/pause</p>
         </div>
         <div class="game-status">
             <p id="gameStatus">Press SPACE to start the game!</p>
         </div>
     </div>
+    
+    <!-- Winner Popup Modal -->
+    <div id="winnerModal" class="modal">
+        <div class="modal-content">
+            <h2 id="winnerText">Player 1 Wins!</h2>
+            <button id="playAgainBtn" class="play-again-btn">Play Again</button>
+        </div>
+    </div>
+    
     <script src="script.js"></script>
 </body>
 </html>
