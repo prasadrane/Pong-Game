@@ -7,6 +7,7 @@ const gameStatus = document.getElementById('gameStatus');
 const winnerModal = document.getElementById('winnerModal');
 const winnerText = document.getElementById('winnerText');
 const playAgainBtn = document.getElementById('playAgainBtn');
+const pauseBtn = document.getElementById('pauseBtn');
 
 // Game settings
 const PADDLE_WIDTH = 10;
@@ -71,6 +72,9 @@ document.addEventListener('keydown', (e) => {
             startGame();
         } else if (gameRunning) {
             pauseGame();
+        } else if (!gameRunning && !gameOver) {
+            // Game is paused, resume it
+            resumeGame();
         } else if (gameOver) {
             resetGame();
         }
@@ -93,28 +97,28 @@ function handleTouchStart(e) {
     const touchX = (touch.clientX - rect.left) * (canvas.width / rect.width);
     const touchY = (touch.clientY - rect.top) * (canvas.height / rect.height);
     
-    // Handle game start/pause/resume - same logic as spacebar
+    // Handle game start only when game is not running and not over
     if (!gameRunning && !gameOver) {
         startGame();
         return; // Don't set paddle controls when starting game
-    } else if (gameRunning) {
-        pauseGame();
-        return; // Don't set paddle controls when pausing game
     } else if (gameOver) {
         resetGame();
         return; // Don't set paddle controls when resetting game
     }
     
-    // Determine which paddle area was touched (only during gameplay)
-    if (touchX < canvas.width / 2) {
-        // Left side - Player 1 paddle
-        touchPaddle = 'player1';
-    } else {
-        // Right side - Player 2 paddle
-        touchPaddle = 'player2';
+    // During gameplay, handle paddle touch controls with improved sensitivity
+    if (gameRunning) {
+        // Determine which paddle area was touched with larger touch zones
+        if (touchX < canvas.width / 2) {
+            // Left side - Player 1 paddle (full left half)
+            touchPaddle = 'player1';
+        } else {
+            // Right side - Player 2 paddle (full right half)
+            touchPaddle = 'player2';
+        }
+        
+        touchStartY = touchY;
     }
-    
-    touchStartY = touchY;
 }
 
 function handleTouchMove(e) {
@@ -145,17 +149,36 @@ playAgainBtn.addEventListener('click', () => {
     resetGame();
 });
 
+// Pause button handler
+pauseBtn.addEventListener('click', () => {
+    if (gameRunning) {
+        pauseGame();
+    } else if (!gameOver) {
+        resumeGame();
+    }
+});
+
 // Game functions
 function startGame() {
     gameRunning = true;
     gameOver = false;
     gameStatus.textContent = 'Game in progress...';
+    pauseBtn.style.display = 'inline-block';
+    pauseBtn.textContent = 'Pause';
     gameLoop();
 }
 
 function pauseGame() {
     gameRunning = false;
-    gameStatus.textContent = 'Game paused. Press SPACE or tap to continue.';
+    gameStatus.textContent = 'Game paused. Click Resume to continue.';
+    pauseBtn.textContent = 'Resume';
+}
+
+function resumeGame() {
+    gameRunning = true;
+    gameStatus.textContent = 'Game in progress...';
+    pauseBtn.textContent = 'Pause';
+    gameLoop();
 }
 
 function resetGame() {
@@ -171,6 +194,7 @@ function resetGame() {
     resetBall();
     
     gameStatus.textContent = 'Press SPACE or tap to start the game!';
+    pauseBtn.style.display = 'none';
     draw();
 }
 
@@ -247,10 +271,12 @@ function checkWin() {
     if (game.score.player1 >= maxScore) {
         gameOver = true;
         gameRunning = false;
+        pauseBtn.style.display = 'none';
         showWinnerModal('Player 1 Wins!');
     } else if (game.score.player2 >= maxScore) {
         gameOver = true;
         gameRunning = false;
+        pauseBtn.style.display = 'none';
         showWinnerModal('Player 2 Wins!');
     }
 }

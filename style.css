@@ -66,6 +66,35 @@ h1 {
     margin: 20px 0;
 }
 
+.game-controls {
+    margin: 15px 0;
+}
+
+.pause-btn {
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    color: #000;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    min-width: 100px;
+}
+
+.pause-btn:hover {
+    background: linear-gradient(45deg, #FFA500, #FFD700);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 215, 0, 0.5);
+}
+
+.pause-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
 .controls {
     margin-top: 20px;
     font-size: 0.9em;
