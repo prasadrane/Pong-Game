@@ -15,6 +15,7 @@ body {
     align-items: center;
     min-height: 100vh;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .game-container {
@@ -64,6 +65,10 @@ h1 {
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
     margin: 20px 0;
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .game-controls {
@@ -139,6 +144,65 @@ h1 {
     
     .controls {
         font-size: 0.85em;
+    }
+}
+
+@media (max-width: 480px) {
+    #gameCanvas {
+        width: 95vw;
+        height: 47.5vw;
+    }
+    
+    body {
+        padding: 5px;
+    }
+    
+    h1 {
+        font-size: 1.5em;
+        margin: 0 0 15px 0;
+    }
+    
+    .score-board {
+        font-size: 0.9em;
+        margin-bottom: 15px;
+    }
+    
+    .controls {
+        font-size: 0.8em;
+    }
+    
+    .game-container {
+        padding: 15px;
+    }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+    body {
+        padding: 5px;
+    }
+    
+    h1 {
+        font-size: 1.5em;
+        margin: 0 0 10px 0;
+    }
+    
+    .score-board {
+        margin-bottom: 10px;
+    }
+    
+    .controls {
+        font-size: 0.7em;
+        margin-top: 10px;
+    }
+    
+    .game-container {
+        padding: 10px;
+    }
+    
+    #gameCanvas {
+        width: 85vw;
+        height: 42.5vw;
+        max-height: 300px;
     }
 }
 

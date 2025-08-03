@@ -58,6 +58,9 @@ const keys = {};
 // Touch controls variables
 let touchStartY = null;
 let touchPaddle = null;
+let lastTouchMoveTime = 0;
+const touchMoveThrottle = 16; // ~60fps throttling
+let activeTouchZone = null; // Track which zone is being touched
 
 document.addEventListener('keydown', (e) => {
     keys[e.key.toLowerCase()] = true;
@@ -112,9 +115,11 @@ function handleTouchStart(e) {
         if (touchX < canvas.width / 2) {
             // Left side - Player 1 paddle (full left half)
             touchPaddle = 'player1';
+            activeTouchZone = 'left';
         } else {
             // Right side - Player 2 paddle (full right half)
             touchPaddle = 'player2';
+            activeTouchZone = 'right';
         }
         
         touchStartY = touchY;
@@ -124,6 +129,11 @@ function handleTouchStart(e) {
 function handleTouchMove(e) {
     e.preventDefault();
     if (touchStartY === null || touchPaddle === null) return;
+    
+    // Throttle touch move events for better performance
+    const now = Date.now();
+    if (now - lastTouchMoveTime < touchMoveThrottle) return;
+    lastTouchMoveTime = now;
     
     const touch = e.touches[0];
     const rect = canvas.getBoundingClientRect();
@@ -141,6 +151,7 @@ function handleTouchEnd(e) {
     e.preventDefault();
     touchStartY = null;
     touchPaddle = null;
+    activeTouchZone = null;
 }
 
 // Play Again button handler
@@ -310,6 +321,32 @@ function draw() {
     ctx.lineTo(canvas.width / 2, canvas.height);
     ctx.stroke();
     ctx.setLineDash([]);
+    
+    // Draw touch zone indicators for mobile (only when game is running)
+    if (gameRunning && window.innerWidth <= 900) {
+        // Base touch zone color
+        const baseAlpha = 0.05;
+        const activeAlpha = 0.15;
+        
+        // Left touch zone
+        ctx.fillStyle = activeTouchZone === 'left' ? 
+            `rgba(255, 215, 0, ${activeAlpha})` : 
+            `rgba(255, 215, 0, ${baseAlpha})`;
+        ctx.fillRect(0, 0, canvas.width / 2, canvas.height);
+        
+        // Right touch zone  
+        ctx.fillStyle = activeTouchZone === 'right' ? 
+            `rgba(255, 215, 0, ${activeAlpha})` : 
+            `rgba(255, 215, 0, ${baseAlpha})`;
+        ctx.fillRect(canvas.width / 2, 0, canvas.width / 2, canvas.height);
+        
+        // Draw touch zone labels
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('P1', canvas.width / 4, canvas.height / 2);
+        ctx.fillText('P2', 3 * canvas.width / 4, canvas.height / 2);
+    }
     
     // Draw paddles
     ctx.fillStyle = '#fff';
