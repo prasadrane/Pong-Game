@@ -4,6 +4,9 @@ const ctx = canvas.getContext('2d');
 const player1Score = document.getElementById('player1Score');
 const player2Score = document.getElementById('player2Score');
 const gameStatus = document.getElementById('gameStatus');
+const winnerModal = document.getElementById('winnerModal');
+const winnerText = document.getElementById('winnerText');
+const playAgainBtn = document.getElementById('playAgainBtn');
 
 // Game settings
 const PADDLE_WIDTH = 10;
@@ -51,6 +54,10 @@ const ball = {
 // Input handling
 const keys = {};
 
+// Touch controls variables
+let touchStartY = null;
+let touchPaddle = null;
+
 document.addEventListener('keydown', (e) => {
     keys[e.key.toLowerCase()] = true;
     
@@ -72,6 +79,58 @@ document.addEventListener('keydown', (e) => {
 
 document.addEventListener('keyup', (e) => {
     keys[e.key.toLowerCase()] = false;
+});
+
+// Touch event handlers
+canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+function handleTouchStart(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const touchX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+    const touchY = (touch.clientY - rect.top) * (canvas.height / rect.height);
+    
+    // Determine which paddle area was touched
+    if (touchX < canvas.width / 2) {
+        // Left side - Player 1 paddle
+        touchPaddle = 'player1';
+    } else {
+        // Right side - Player 2 paddle
+        touchPaddle = 'player2';
+    }
+    
+    touchStartY = touchY;
+}
+
+function handleTouchMove(e) {
+    e.preventDefault();
+    if (touchStartY === null || touchPaddle === null) return;
+    
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const touchY = (touch.clientY - rect.top) * (canvas.height / rect.height);
+    
+    // Calculate paddle position based on touch
+    if (touchPaddle === 'player1') {
+        paddle1.y = Math.max(0, Math.min(canvas.height - PADDLE_HEIGHT, touchY - PADDLE_HEIGHT / 2));
+    } else if (touchPaddle === 'player2') {
+        paddle2.y = Math.max(0, Math.min(canvas.height - PADDLE_HEIGHT, touchY - PADDLE_HEIGHT / 2));
+    }
+}
+
+function handleTouchEnd(e) {
+    e.preventDefault();
+    touchStartY = null;
+    touchPaddle = null;
+}
+
+// Play Again button handler
+playAgainBtn.addEventListener('click', () => {
+    hideWinnerModal();
+    resetGame();
 });
 
 // Game functions
@@ -176,12 +235,22 @@ function checkWin() {
     if (game.score.player1 >= maxScore) {
         gameOver = true;
         gameRunning = false;
-        gameStatus.textContent = 'Player 1 Wins! Press SPACE to play again.';
+        showWinnerModal('Player 1 Wins!');
     } else if (game.score.player2 >= maxScore) {
         gameOver = true;
         gameRunning = false;
-        gameStatus.textContent = 'Player 2 Wins! Press SPACE to play again.';
+        showWinnerModal('Player 2 Wins!');
     }
+}
+
+function showWinnerModal(winner) {
+    winnerText.textContent = winner;
+    winnerModal.style.display = 'block';
+    gameStatus.textContent = 'Game Over!';
+}
+
+function hideWinnerModal() {
+    winnerModal.style.display = 'none';
 }
 
 function updateScore() {
