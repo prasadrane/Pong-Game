@@ -58,6 +58,13 @@ const keys = {};
 let touchStartY = null;
 let touchPaddle = null;
 
+// Touch sensitivity settings for better mobile experience
+const TOUCH_SENSITIVITY = {
+    EXPAND_ZONE: 50, // Pixels to expand touch zones beyond canvas
+    MIN_TOUCH_HEIGHT: 100, // Minimum touch area height around paddle
+    OVERLAP_ZONE: 100 // Pixels of overlap in center for easier switching
+};
+
 document.addEventListener('keydown', (e) => {
     keys[e.key.toLowerCase()] = true;
     
@@ -86,6 +93,50 @@ canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
 canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
 canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
 
+// Add expanded touch zones to document for better mobile experience
+document.addEventListener('touchstart', handleDocumentTouchStart, { passive: false });
+document.addEventListener('touchmove', handleTouchMove, { passive: false });
+document.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+function handleDocumentTouchStart(e) {
+    // Only handle touches when game is running and not already handled by canvas
+    if (!gameRunning) return;
+    
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    
+    // Check if touch is near the canvas area (expanded zones)
+    const touchX = touch.clientX;
+    const touchY = touch.clientY;
+    
+    const expandedLeft = rect.left - TOUCH_SENSITIVITY.EXPAND_ZONE;
+    const expandedRight = rect.right + TOUCH_SENSITIVITY.EXPAND_ZONE;
+    const expandedTop = rect.top - TOUCH_SENSITIVITY.EXPAND_ZONE;
+    const expandedBottom = rect.bottom + TOUCH_SENSITIVITY.EXPAND_ZONE;
+    
+    // Only handle touches in expanded game area
+    if (touchX >= expandedLeft && touchX <= expandedRight && 
+        touchY >= expandedTop && touchY <= expandedBottom) {
+        
+        // Convert to canvas coordinates
+        const canvasX = Math.max(0, Math.min(canvas.width, 
+            (touchX - rect.left) * (canvas.width / rect.width)));
+        const canvasY = Math.max(0, Math.min(canvas.height, 
+            (touchY - rect.top) * (canvas.height / rect.height)));
+        
+        // Create synthetic event for handleTouchStart
+        const syntheticEvent = {
+            preventDefault: () => e.preventDefault(),
+            touches: [{
+                clientX: rect.left + (canvasX * rect.width / canvas.width),
+                clientY: rect.top + (canvasY * rect.height / canvas.height)
+            }]
+        };
+        
+        handleTouchStart(syntheticEvent);
+    }
+}
+
 function handleTouchStart(e) {
     e.preventDefault();
     const touch = e.touches[0];
@@ -93,13 +144,22 @@ function handleTouchStart(e) {
     const touchX = (touch.clientX - rect.left) * (canvas.width / rect.width);
     const touchY = (touch.clientY - rect.top) * (canvas.height / rect.height);
     
-    // Determine which paddle area was touched
-    if (touchX < canvas.width / 2) {
-        // Left side - Player 1 paddle
+    // Expanded touch zones for better mobile experience
+    const leftZoneEnd = (canvas.width / 2) + TOUCH_SENSITIVITY.OVERLAP_ZONE;
+    const rightZoneStart = (canvas.width / 2) - TOUCH_SENSITIVITY.OVERLAP_ZONE;
+    
+    // Determine which paddle area was touched with expanded zones
+    if (touchX < leftZoneEnd) {
+        // Left side or center-left - Player 1 paddle
         touchPaddle = 'player1';
-    } else {
-        // Right side - Player 2 paddle
+    } else if (touchX > rightZoneStart) {
+        // Right side or center-right - Player 2 paddle  
         touchPaddle = 'player2';
+    } else {
+        // Fallback: choose closest paddle based on current position
+        const distToLeftPaddle = Math.abs(touchY - (paddle1.y + PADDLE_HEIGHT / 2));
+        const distToRightPaddle = Math.abs(touchY - (paddle2.y + PADDLE_HEIGHT / 2));
+        touchPaddle = distToLeftPaddle < distToRightPaddle ? 'player1' : 'player2';
     }
     
     touchStartY = touchY;
@@ -113,11 +173,15 @@ function handleTouchMove(e) {
     const rect = canvas.getBoundingClientRect();
     const touchY = (touch.clientY - rect.top) * (canvas.height / rect.height);
     
-    // Calculate paddle position based on touch
+    // Enhanced paddle position calculation with improved sensitivity
+    const targetY = touchY - PADDLE_HEIGHT / 2;
+    const clampedY = Math.max(0, Math.min(canvas.height - PADDLE_HEIGHT, targetY));
+    
+    // Smooth paddle movement for better touch experience
     if (touchPaddle === 'player1') {
-        paddle1.y = Math.max(0, Math.min(canvas.height - PADDLE_HEIGHT, touchY - PADDLE_HEIGHT / 2));
+        paddle1.y = clampedY;
     } else if (touchPaddle === 'player2') {
-        paddle2.y = Math.max(0, Math.min(canvas.height - PADDLE_HEIGHT, touchY - PADDLE_HEIGHT / 2));
+        paddle2.y = clampedY;
     }
 }
 
@@ -263,6 +327,11 @@ function draw() {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
+    // Draw touch zone indicators (subtle visual feedback)
+    if (touchPaddle || !gameRunning) {
+        drawTouchZoneIndicators();
+    }
+    
     // Draw center line
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
@@ -280,6 +349,22 @@ function draw() {
     
     // Draw ball
     ctx.fillRect(ball.x, ball.y, ball.size, ball.size);
+}
+
+function drawTouchZoneIndicators() {
+    // Draw subtle touch zone indicators for better mobile UX
+    ctx.globalAlpha = 0.1;
+    
+    // Left touch zone (Player 1)
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(0, 0, (canvas.width / 2) + TOUCH_SENSITIVITY.OVERLAP_ZONE, canvas.height);
+    
+    // Right touch zone (Player 2)  
+    ctx.fillStyle = '#87CEEB';
+    ctx.fillRect((canvas.width / 2) - TOUCH_SENSITIVITY.OVERLAP_ZONE, 0, 
+                 (canvas.width / 2) + TOUCH_SENSITIVITY.OVERLAP_ZONE, canvas.height);
+    
+    ctx.globalAlpha = 1.0;
 }
 
 function gameLoop() {
